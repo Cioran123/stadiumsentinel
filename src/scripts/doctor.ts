@@ -2,8 +2,8 @@
  * Demo readiness check.
  *
  * Verifies the things that are easy to forget right before a hackathon
- * demo: API keys, ffmpeg/ffprobe on PATH, the demo sample files, and
- * required storage directories. Prints a green check or red X per item
+ * demo: ffmpeg/ffprobe on PATH, the camera corpus, the prepared incident
+ * ledger, storage directories, and optional sponsor credentials. Prints a green check or red X per item
  * and exits with code 1 if any check fails.
  *
  * Run with: npm run doctor (uses tsx to execute this TypeScript file).
@@ -35,25 +35,38 @@ function fail(label: string, detail?: string): CheckResult {
   return { label, ok: false, detail };
 }
 
-async function checkEnv(name: string): Promise<CheckResult> {
-  // Best-effort: load .env.local so people who only set keys there
-  // don't get a false negative. We don't bring in a dependency for this.
-  const root = process.cwd();
-  for (const file of [".env.local", ".env"]) {
-    try {
-      const raw = await fs.readFile(path.join(root, file), "utf8");
-      for (const line of raw.split(/\r?\n/)) {
-        const m = /^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/.exec(line);
-        if (!m) continue;
-        const [, key, valueRaw] = m;
-        if (process.env[key] !== undefined) continue;
-        const value = valueRaw.replace(/^['"]|['"]$/g, "");
-        process.env[key] = value;
-      }
-    } catch {
-      // file may not exist; that's fine
+async function loadEnvFile(file: string): Promise<void> {
+  try {
+    const raw = await fs.readFile(file, "utf8");
+    for (const line of raw.split(/\r?\n/)) {
+      const m = /^\s*(?:export\s+)?([A-Z0-9_]+)\s*=\s*(.*)\s*$/.exec(line);
+      if (!m || m[0].trimStart().startsWith("#")) continue;
+      const [, key, valueRaw] = m;
+      if (process.env[key] !== undefined) continue;
+      process.env[key] = valueRaw.replace(/^['"]|['"]$/g, "");
     }
+  } catch {
+    // file may not exist; that's fine
   }
+}
+
+async function loadEnv(): Promise<void> {
+  // Best-effort: load .env.local and the Builders Challenge team file so
+  // people who only set keys there don't get a false negative.
+  const root = process.cwd();
+  await loadEnvFile(path.join(root, ".env.local"));
+  await loadEnvFile(path.join(root, ".env"));
+  if (process.env.BUILDERS_CONFIG) await loadEnvFile(process.env.BUILDERS_CONFIG);
+  try {
+    const configs = (await fs.readdir("/config")).filter((name) => name.endsWith(".config"));
+    if (configs.length === 1) await loadEnvFile(path.join("/config", configs[0]));
+  } catch {
+    // /config exists only on the workshop VM
+  }
+}
+
+async function checkEnv(name: string): Promise<CheckResult> {
+  await loadEnv();
 
   const value = process.env[name];
   if (!value || value.trim().length === 0) {
@@ -119,27 +132,62 @@ function render(results: CheckResult[]): boolean {
   return allOk;
 }
 
+async function checkOptionalAny(names: string[], label: string, fallback: string): Promise<CheckResult> {
+  await loadEnv();
+  const hit = names.find((name) => process.env[name]?.trim());
+  if (hit) return pass(label, hit);
+  return pass(`${label} not set`, `using fallback: ${fallback}`);
+}
+
+/** Sponsor credentials are optional: each adapter falls back to a local stand-in. */
+async function checkOptionalEnv(name: string, fallback: string): Promise<CheckResult> {
+  const result = await checkEnv(name);
+  if (result.ok) return result;
+  return pass(`${name} not set`, `using fallback: ${fallback}`);
+}
+
 async function main(): Promise<void> {
   const root = process.cwd();
-  const samplesDir = path.join(root, "storage", "samples");
+  const configPath = path.join(root, "pipeline", "config", "cameras.json");
 
   const results: CheckResult[] = [];
-  results.push(await checkEnv("ANTHROPIC_API_KEY"));
   results.push(await checkBinary("ffmpeg"));
   results.push(await checkBinary("ffprobe"));
-  results.push(await checkFile("storage/samples/demo.mp4 exists", path.join(samplesDir, "demo.mp4")));
+  results.push(await checkFile("pipeline/config/cameras.json exists", configPath));
+
+  try {
+    const config = JSON.parse(await fs.readFile(configPath, "utf8")) as {
+      cameras: { id: string; videoFile: string }[];
+    };
+    for (const cam of config.cameras) {
+      results.push(
+        await checkFile(`${cam.id} video`, path.join(root, "storage", "videos", cam.videoFile)),
+      );
+    }
+  } catch {
+    // reported by the cameras.json check above
+  }
+
   results.push(
     await checkFile(
-      "storage/samples/demo-events.json exists",
-      path.join(samplesDir, "demo-events.json"),
+      "storage/db/incidents.json exists (run pipeline/run_all.py)",
+      path.join(root, "storage", "db", "incidents.json"),
     ),
   );
-  results.push(await checkDir("storage/videos directory", path.join(root, "storage", "videos")));
-  results.push(
-    await checkDir("storage/thumbnails directory", path.join(root, "storage", "thumbnails")),
-  );
-  results.push(await checkDir("storage/alerts directory", path.join(root, "storage", "alerts")));
   results.push(await checkDir("storage/db directory", path.join(root, "storage", "db")));
+  results.push(await checkDir("storage/reels directory", path.join(root, "storage", "reels")));
+  results.push(await checkOptionalEnv("ANTHROPIC_API_KEY", "keyword search parsing"));
+  results.push(await checkOptionalEnv("WANDB_API_KEY", "no Weave tracing"));
+  results.push(await checkOptionalAny(
+    ["NVIDIA_API_KEY", "GPU_BEARER_TOKEN", "COSMOS3_REASON_URL", "COSMOS_BASE_URL"],
+    "Cosmos Reason configured",
+    "verifier stays on Claude or unverified candidates",
+  ));
+  results.push(await checkOptionalAny(
+    ["VAST_S3_ENDPOINT", "S3_ENDPOINT"],
+    "VAST endpoint configured",
+    "search stays on the local ledger",
+  ));
 
   const ok = render(results);
   process.exit(ok ? 0 : 1);

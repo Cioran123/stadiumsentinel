@@ -2,21 +2,16 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 
 export const STORAGE_ROOT = path.resolve(process.cwd(), "storage");
+/** Assembled two-minute camera recordings, named per `videoFile` in pipeline/config/cameras.json. */
 export const VIDEOS_DIR = path.join(STORAGE_ROOT, "videos");
-/** Tab 3 live session screen recordings (WebM); correlates with event.startTs via session offset. */
-export const LIVE_RECORDINGS_DIR = path.join(VIDEOS_DIR, "live");
-export const THUMBNAILS_DIR = path.join(STORAGE_ROOT, "thumbnails");
-export const ALERTS_DIR = path.join(STORAGE_ROOT, "alerts");
+/** Short candidate clips cut by pipeline/verify.py, named `<incidentId>.mp4`. */
+export const CLIPS_DIR = path.join(STORAGE_ROOT, "clips");
+export const REELS_DIR = path.join(STORAGE_ROOT, "reels");
+/** Pipeline intermediates: `<cameraId>.tracks.json`, `eval.json`. */
+export const PIPELINE_DIR = path.join(STORAGE_ROOT, "pipeline");
 export const DB_DIR = path.join(STORAGE_ROOT, "db");
 
-const REQUIRED_DIRS = [
-  STORAGE_ROOT,
-  VIDEOS_DIR,
-  LIVE_RECORDINGS_DIR,
-  THUMBNAILS_DIR,
-  ALERTS_DIR,
-  DB_DIR,
-];
+const REQUIRED_DIRS = [STORAGE_ROOT, VIDEOS_DIR, CLIPS_DIR, REELS_DIR, PIPELINE_DIR, DB_DIR];
 
 async function ensureDirs(): Promise<void> {
   await Promise.all(REQUIRED_DIRS.map((dir) => fs.mkdir(dir, { recursive: true })));
@@ -46,7 +41,7 @@ class Mutex {
 
 const mutex = new Mutex();
 
-export type TableName = "uploads" | "events" | "sessions" | "alertThreads";
+export type TableName = "incidents" | "reels";
 
 function tablePath(name: TableName): string {
   return path.join(DB_DIR, `${name}.json`);

@@ -1,0 +1,80 @@
+{
+  "venueId": "VENUE_A",
+  "venueName": "Venue A (fictional stadium)",
+  "cameras": [
+    {
+      "id": "CAM_01",
+      "zone": "North Gate",
+      "zoneId": "north_gate",
+      "videoFile": "CAM_01.mp4",
+      "durationSec": 4,
+      "sourceType": "synthetic_seedance",
+      "scenario": "Orderly gate queue breaks into a rush through the entrance lanes (4s test clip).",
+      "roi": [[0.0, 0.32], [0.95, 0.32], [1.0, 1.0], [0.0, 1.0]],
+      "groundTruth": { "eventType": "crowd_flow_anomaly", "startSec": 1, "endSec": 4 }
+    },
+    {
+      "id": "CAM_02",
+      "zone": "North Exit Plaza",
+      "zoneId": "exit_plaza",
+      "videoFile": "CAM_02.mp4",
+      "durationSec": 20,
+      "sourceType": "synthetic_seedance",
+      "scenario": "Crowd held behind the barriers surges toward the camera; several people fall and stay on the ground while the crowd floods over them (20s test clip).",
+      "roi": [[0.0, 0.16], [1.0, 0.16], [1.0, 1.0], [0.0, 1.0]],
+      "groundTruth": { "eventType": "crowd_flow_anomaly", "startSec": 11.5, "endSec": 20 }
+    },
+    {
+      "id": "CAM_03",
+      "zone": "East Concourse",
+      "zoneId": "east_concourse",
+      "videoFile": "CAM_03.mp4",
+      "durationSec": 15,
+      "sourceType": "synthetic_seedance",
+      "scenario": "Two adults argue face to face in a busy concourse, then grab each other; one ends up on the floor (15s test clip).",
+      "roi": [[0.0, 0.2], [1.0, 0.2], [1.0, 1.0], [0.0, 1.0]],
+      "groundTruth": { "eventType": "possible_altercation", "startSec": 1, "endSec": 11 }
+    },
+    {
+      "id": "CAM_04",
+      "zone": "Field Perimeter",
+      "zoneId": "field_perimeter",
+      "videoFile": "CAM_04.mp4",
+      "durationSec": 15,
+      "sourceType": "synthetic_seedance",
+      "scenario": "A fan in the front row climbs over the field-side barrier and runs onto the field (15s test clip).",
+      "restrictedPolygons": [
+        [[0.17, 0.13], [1.0, 0.1], [1.0, 0.76], [0.6, 0.5], [0.17, 0.22]]
+      ],
+      "groundTruth": { "eventType": "restricted_zone_entry", "startSec": 4, "endSec": 15 }
+    },
+    {
+      "id": "CAM_05",
+      "zone": "Section 114",
+      "zoneId": "section_114",
+      "videoFile": "CAM_05.mp4",
+      "durationSec": 120,
+      "sourceType": "synthetic_seedance",
+      "scenario": "One adult sits or remains low and still for several seconds; staff approaches.",
+      "groundTruth": { "eventType": "person_down_or_inactivity", "startSec": 60, "endSec": 80 }
+    },
+    {
+      "id": "CAM_06",
+      "zone": "Staff Tunnel",
+      "zoneId": "staff_tunnel",
+      "videoFile": "CAM_06.mp4",
+      "durationSec": 120,
+      "sourceType": "synthetic_seedance",
+      "scenario": "One adult crosses a marked staff-only threshold; authorized staff visible.",
+      "restrictedPolygons": [
+        [[0.35, 0.0], [0.65, 0.0], [0.72, 0.55], [0.28, 0.55]]
+      ],
+      "groundTruth": { "eventType": "restricted_zone_entry", "startSec": 38, "endSec": 58 }
+    }
+  ],
+  "normalSegments": [
+    { "cameraId": "CAM_01", "startSec": 5, "endSec": 15 },
+    { "cameraId": "CAM_03", "startSec": 90, "endSec": 100 },
+    { "cameraId": "CAM_05", "startSec": 100, "endSec": 110 }
+  ]
+}

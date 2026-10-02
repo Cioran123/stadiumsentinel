@@ -46,3 +46,9 @@ next-env.d.ts
 # local storage + env
 /storage/
 .env.local
+
+# python pipeline
+/.venv/
+__pycache__/
+*.pt
+/footage/

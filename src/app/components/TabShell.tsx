@@ -8,7 +8,11 @@ export default function TabShell() {
   const pathname = usePathname();
 
   return (
-    <header className="shrink-0 border-b border-white/10 bg-[#0c0c12] px-4 py-3">
+    <header className="flex shrink-0 flex-wrap items-center gap-4 border-b border-white/10 bg-[#0c0c12] px-4 py-3">
+      <Link href="/overview" className="flex items-baseline gap-2">
+        <span className="text-sm font-bold tracking-[0.2em] text-white">STADIUM SENTINEL</span>
+        <span className="text-[10px] uppercase tracking-wider text-slate-500">Venue A</span>
+      </Link>
       <nav className="flex flex-wrap gap-2" aria-label="Workspace tabs">
         {TABS.map((tab) => {
           const active =
@@ -28,6 +32,9 @@ export default function TabShell() {
           );
         })}
       </nav>
+      <span className="ml-auto text-[10px] uppercase tracking-wider text-slate-500">
+        Synthetic scenarios · prioritizes footage for human review · not an emergency detector
+      </span>
     </header>
   );
 }

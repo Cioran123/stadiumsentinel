@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Loaded at runtime (not bundled) so Weave can patch the Anthropic client for tracing.
+  serverExternalPackages: ["weave", "@anthropic-ai/sdk"],
 };
 
 export default nextConfig;
