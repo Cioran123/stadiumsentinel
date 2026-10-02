@@ -77,7 +77,7 @@ Text overlays are drawn with OpenCV, so an ffmpeg build without `drawtext` is fi
 |---|---|---|
 | `NVIDIA_API_KEY` | verify.py | Cosmos Reason via `https://integrate.api.nvidia.com/v1`. On the Builders Challenge VM this is filled from `GPU_BEARER_TOKEN` |
 | `COSMOS_BASE_URL` | verify.py | override endpoint, e.g. a local NIM/vLLM `http://localhost:8000/v1`. Filled from `COSMOS3_REASON_URL` (with `/v1` appended) |
-| `COSMOS_MODEL` | verify.py | default `nvidia/cosmos-reason2-8b`, or `nvidia/cosmos3-reason` when `COSMOS3_REASON_URL` is set |
+| `COSMOS_MODEL` | verify.py | default `nvidia/cosmos-reason2-8b`, or `nvidia/cosmos3-nano-reasoner` when `COSMOS3_REASON_URL` is set (check `$COSMOS3_REASON_URL/v1/models`) |
 | `COSMOS3_REASON_URL`, `COSMOS3_REASON_MODEL`, `GPU_BEARER_TOKEN` | verify.py | Builders Challenge Cosmos3-Reason. Loaded from `/config/<team>.config` on the VM, or from `.env.local` |
 | `COSMOS_FPS`, `COSMOS_REASONING=1` | verify.py | frame sampling; ask for `<think>`/`<answer>` output |
 | `ANTHROPIC_API_KEY`, `CLAUDE_MODEL` | verify.py, search | fallback verifier; natural-language query parsing |

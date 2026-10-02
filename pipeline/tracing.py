@@ -31,7 +31,11 @@ def init() -> Any:
     except ImportError:
         print("[tracing] weave not installed; tracing disabled")
         return None
-    weave.init(os.environ.get("WEAVE_PROJECT", "stadium-sentinel"))
+    try:
+        weave.init(os.environ.get("WEAVE_PROJECT", "stadium-sentinel"))
+    except Exception as err:
+        print(f"[tracing] weave init failed; tracing disabled: {err}")
+        return None
     _weave = weave
     return _weave
 

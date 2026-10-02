@@ -15,7 +15,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-_DEFAULT_COSMOS_MODEL = "nvidia/cosmos3-reason"
+_DEFAULT_COSMOS_MODEL = "nvidia/cosmos3-nano-reasoner"
 
 
 def parse_config(text: str) -> dict[str, str]:
@@ -29,7 +29,10 @@ def parse_config(text: str) -> dict[str, str]:
         if "=" not in line:
             continue
         key, value = line.split("=", 1)
-        out[key.strip()] = value.strip().strip("'\"")
+        value = value.strip().strip("'\"")
+        if not value or value.startswith("<"):
+            continue
+        out[key.strip()] = value
     return out
 
 
@@ -52,7 +55,12 @@ def apply_builders_env() -> None:
     if reason:
         _set_default("COSMOS_BASE_URL", cosmos_base_url(reason))
         _set_default("COSMOS_MODEL", os.environ.get("COSMOS3_REASON_MODEL", "").strip() or _DEFAULT_COSMOS_MODEL)
-    _set_default("NVIDIA_API_KEY", os.environ.get("GPU_BEARER_TOKEN", "").strip())
+        # Workshop bearer belongs to this host, not api.nvidia.com.
+        _set_default("NVIDIA_API_KEY", os.environ.get("GPU_BEARER_TOKEN", "").strip())
+
+    team, project = os.environ.get("WANDB_TEAM", "").strip(), os.environ.get("WANDB_PROJECT", "").strip()
+    if team and project:
+        _set_default("WEAVE_PROJECT", f"{team}/{project}")
 
     _set_default("VAST_S3_ENDPOINT", os.environ.get("S3_ENDPOINT", "").strip())
     _set_default("VAST_ACCESS_KEY", os.environ.get("ACCESS_KEY", "").strip())

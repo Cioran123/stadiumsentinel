@@ -195,7 +195,7 @@ def call_cosmos(clip_path, prompt: str) -> tuple[str, str]:
         top_p=0.95,
     )
     # The public NVIDIA endpoint samples frames from this hint. The Builders
-    # Challenge vLLM server rejects unknown extra fields.
+    # Challenge server is only known to work without it.
     if base_url.rstrip("/") == DEFAULT_COSMOS_URL.rstrip("/"):
         request["extra_body"] = {"media_io_kwargs": {"video": {"fps": float(os.environ.get("COSMOS_FPS", "4"))}}}
     resp = client.chat.completions.create(**request)
